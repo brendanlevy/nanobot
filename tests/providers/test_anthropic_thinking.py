@@ -85,6 +85,19 @@ def test_opus_4_7_omits_temperature_none() -> None:
     assert "thinking" not in kw
 
 
+def test_opus_4_8_omits_temperature_none() -> None:
+    """opus-4-8 inherits the opus-4-7 temperature deprecation (API 400s otherwise)."""
+    kw = _build(_make_provider("claude-opus-4-8"), None)
+    assert "temperature" not in kw
+    assert "thinking" not in kw
+
+
+def test_opus_4_8_omits_temperature_adaptive() -> None:
+    kw = _build(_make_provider("claude-opus-4-8"), "adaptive")
+    assert "temperature" not in kw
+    assert kw["thinking"] == {"type": "adaptive"}
+
+
 def test_reasoning_effort_string_none_does_not_enable_thinking() -> None:
     """reasoning_effort='none' must not enable thinking — treated same as disabled."""
     kw = _build(_make_provider(), "none")

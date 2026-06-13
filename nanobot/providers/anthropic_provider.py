@@ -452,9 +452,11 @@ class AnthropicProvider(LLMProvider):
         max_tokens = max(1, max_tokens)
         thinking_enabled = bool(reasoning_effort) and reasoning_effort.lower() != "none"
 
-        # claude-opus-4-7 deprecated the `temperature` parameter entirely — the
-        # API returns 400 if it is present, on any code path.
-        omit_temperature = "opus-4-7" in model_name
+        # claude-opus-4-7 was the first Anthropic model to deprecate the `temperature`
+        # parameter entirely — the API returns 400 if it is present, on any code path.
+        # opus-4-8 and later keep that behavior, so match opus-4-7 and any higher 4-x
+        # (incl. future two-digit minors) rather than a single hard-coded version.
+        omit_temperature = bool(re.search(r"opus-4-(?:[7-9]|\d\d+)", model_name))
 
         kwargs: dict[str, Any] = {
             "model": model_name,
