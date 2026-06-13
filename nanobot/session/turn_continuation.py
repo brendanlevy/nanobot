@@ -8,6 +8,7 @@ continuation is allowed and, when it is, queue the next turn directly.
 from __future__ import annotations
 
 import dataclasses
+import os
 from typing import Any, Mapping, MutableMapping
 
 from loguru import logger
@@ -27,7 +28,27 @@ SKIP_USER_PERSIST_META = "_skip_user_persist"
 _GOAL_CONTINUATION_KIND = "sustained_goal"
 _GOAL_CONTINUATION_SENDER = "system:continuation"
 _GOAL_CONTINUATION_ROUNDS_KEY = "_sustained_goal_continuation_rounds"
-_MAX_GOAL_CONTINUATION_ROUNDS = 12
+
+
+def _default_max_goal_continuation_rounds() -> int:
+    """Max silent self-continuation rounds when a sustained goal is active.
+
+    When a turn hits ``maxToolIterations`` with an active goal, nanobot normally
+    queues invisible continuation turns (no user-facing reply between them) to keep
+    grinding toward the goal. Unattended that is a runaway loop.
+
+    This fork defaults the cap to ``0`` — silent auto-continuation is OFF, so the
+    turn instead finalizes and produces a user-facing reply (the bot *checks in*)
+    when it reaches the tool-call budget. Set ``NANOBOT_MAX_GOAL_CONTINUATION_ROUNDS``
+    to a positive integer to restore upstream-style autonomous continuation.
+    """
+    try:
+        return max(0, int(os.environ.get("NANOBOT_MAX_GOAL_CONTINUATION_ROUNDS", "0")))
+    except (TypeError, ValueError):
+        return 0
+
+
+_MAX_GOAL_CONTINUATION_ROUNDS = _default_max_goal_continuation_rounds()
 _STRIPPED_INBOUND_META_KEYS = {
     INTERNAL_CONTINUATION_PENDING_META,
     "goal_requested",
