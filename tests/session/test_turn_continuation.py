@@ -28,7 +28,8 @@ from nanobot.session.turn_continuation import (
 
 
 @pytest.mark.asyncio
-async def test_maybe_continue_turn_queues_internal_message():
+async def test_maybe_continue_turn_queues_internal_message(monkeypatch):
+    monkeypatch.setenv("NANOBOT_MAX_GOAL_CONTINUATION_ROUNDS", "12")
     meta = {
         GOAL_STATE_KEY: {
             "status": "active",
@@ -91,7 +92,8 @@ async def test_maybe_continue_turn_queues_internal_message():
 
 
 @pytest.mark.asyncio
-async def test_internal_continuation_respects_round_limit():
+async def test_internal_continuation_respects_round_limit(monkeypatch):
+    monkeypatch.setenv("NANOBOT_MAX_GOAL_CONTINUATION_ROUNDS", "12")
     meta = {
         GOAL_STATE_KEY: {"status": "active", "objective": "x"},
         "_sustained_goal_continuation_rounds": 12,
@@ -114,7 +116,8 @@ async def test_internal_continuation_respects_round_limit():
     assert await maybe_continue_turn(ctx) is False
 
 
-def test_internal_continuation_requires_budget_boundary_and_queue():
+def test_internal_continuation_requires_budget_boundary_and_queue(monkeypatch):
+    monkeypatch.setenv("NANOBOT_MAX_GOAL_CONTINUATION_ROUNDS", "12")
     meta = {GOAL_STATE_KEY: {"status": "active", "objective": "x"}}
 
     assert should_stream_budget_response(
@@ -139,6 +142,26 @@ def test_internal_continuation_requires_budget_boundary_and_queue():
         pending_queue_available=True,
         session_metadata={},
     )
+
+
+@pytest.mark.asyncio
+async def test_internal_continuation_defaults_to_disabled():
+    meta = {GOAL_STATE_KEY: {"status": "active", "objective": "x"}}
+    ctx = SimpleNamespace(
+        session=SimpleNamespace(metadata=meta),
+        msg=InboundMessage(channel="feishu", sender_id="u1", chat_id="c1", content="start"),
+        session_key="feishu:c1",
+        pending_queue=asyncio.Queue(),
+        stop_reason="max_iterations",
+        final_content="paused",
+        all_messages=[],
+    )
+
+    assert should_finalize_on_max_iterations(
+        pending_queue_available=True,
+        session_metadata=meta,
+    )
+    assert await maybe_continue_turn(ctx) is False
 
 
 def test_save_skip_matches_prefix_when_current_message_merged():

@@ -799,7 +799,9 @@ async def test_process_message_does_not_duplicate_early_persisted_user_message(t
 @pytest.mark.asyncio
 async def test_internal_continuation_queues_turn_without_fake_user_history(
     tmp_path: Path,
+    monkeypatch,
 ) -> None:
+    monkeypatch.setenv("NANOBOT_MAX_GOAL_CONTINUATION_ROUNDS", "12")
     loop = _make_full_loop(tmp_path)
     loop.consolidator.maybe_consolidate_by_tokens = AsyncMock(return_value=False)  # type: ignore[method-assign]
     session = loop.sessions.get_or_create("feishu:c-auto")
@@ -872,7 +874,9 @@ async def test_internal_continuation_queues_turn_without_fake_user_history(
 @pytest.mark.asyncio
 async def test_internal_continuation_preserves_streaming_route_metadata(
     tmp_path: Path,
+    monkeypatch,
 ) -> None:
+    monkeypatch.setenv("NANOBOT_MAX_GOAL_CONTINUATION_ROUNDS", "12")
     loop = _make_full_loop(tmp_path)
     loop.consolidator.maybe_consolidate_by_tokens = AsyncMock(return_value=False)  # type: ignore[method-assign]
     session = loop.sessions.get_or_create("feishu:c-stream")
@@ -950,7 +954,9 @@ async def test_internal_continuation_preserves_streaming_route_metadata(
 @pytest.mark.asyncio
 async def test_websocket_internal_continuation_keeps_single_visible_run(
     tmp_path: Path,
+    monkeypatch,
 ) -> None:
+    monkeypatch.setenv("NANOBOT_MAX_GOAL_CONTINUATION_ROUNDS", "12")
     loop = _make_full_loop(tmp_path)
     loop.consolidator.maybe_consolidate_by_tokens = AsyncMock(return_value=False)  # type: ignore[method-assign]
     session = loop.sessions.get_or_create("websocket:c-auto")

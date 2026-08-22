@@ -69,7 +69,8 @@ async def _execute(tool, ctx: RequestContext, *, allowed: bool = True, **kwargs)
 
 
 @pytest.mark.asyncio
-async def test_create_goal_records_goal_metadata(tmp_path):
+async def test_create_goal_records_goal_metadata(tmp_path, monkeypatch):
+    monkeypatch.setenv("NANOBOT_MAX_GOAL_CONTINUATION_ROUNDS", "12")
     sm = SessionManager(tmp_path)
     create, _update, ctx = _tools(sm)
     sm.get_or_create("websocket:c1").metadata["_sustained_goal_continuation_rounds"] = 12
@@ -140,7 +141,8 @@ async def test_update_goal_complete_closes_active_goal(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_update_goal_replace_keeps_goal_active_with_new_objective(tmp_path):
+async def test_update_goal_replace_keeps_goal_active_with_new_objective(tmp_path, monkeypatch):
+    monkeypatch.setenv("NANOBOT_MAX_GOAL_CONTINUATION_ROUNDS", "12")
     sm = SessionManager(tmp_path)
     create, update, ctx = _tools(sm)
 

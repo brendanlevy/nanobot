@@ -48,7 +48,6 @@ def _default_max_goal_continuation_rounds() -> int:
         return 0
 
 
-_MAX_GOAL_CONTINUATION_ROUNDS = _default_max_goal_continuation_rounds()
 _STRIPPED_INBOUND_META_KEYS = {
     INTERNAL_CONTINUATION_PENDING_META,
     "goal_requested",
@@ -223,7 +222,7 @@ def _goal_continuation_available(
     session_metadata: Mapping[str, Any] | None,
     *,
     message_metadata: Mapping[str, Any] | None = None,
-    max_rounds: int = _MAX_GOAL_CONTINUATION_ROUNDS,
+    max_rounds: int | None = None,
 ) -> bool:
     if not sustained_goal_turn(session_metadata, message_metadata=message_metadata):
         return False
@@ -233,6 +232,8 @@ def _goal_continuation_available(
         rounds = int((session_metadata or {}).get(_GOAL_CONTINUATION_ROUNDS_KEY) or 0)
     except (TypeError, ValueError):
         rounds = 0
+    if max_rounds is None:
+        max_rounds = _default_max_goal_continuation_rounds()
     return rounds < max(0, max_rounds)
 
 
